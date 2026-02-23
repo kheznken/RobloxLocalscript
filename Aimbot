@@ -1,109 +1,280 @@
--- [[ SUPREME EDITION V2.0 ]] --
--- [[ ENCRYPTED SOURCE CODE ]] --
+-- [[ AIMBOT V2.0 - BY TIKTOK @KHEZN21 ]] --
+local Players = game:GetService("Players")
+local RS = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+local Teams = game:GetService("Teams")
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
 
-local _0xLUVM = function()
-    local _0xG = {
-        "\103\97\109\101", "\103\101\116\83\101\114\118\105\99\101", "\80\108\97\121\101\114\115", 
-        "\82\117\110\83\101\114\118\105\99\101", "\85\115\101\114\73\110\112\117\116\83\101\114\118\105\99\101",
-        "\67\117\114\114\101\110\116\67\97\109\101\114\97", "\84\101\97\109\115"
-    }
+local Settings = {
+    Aimbot = false,
+    TargetPart = "Head",
+    UseFOV = false,
+    FOVSize = 150,
+    Smoothing = 0,
+    VisibleCheck = true,
+    DeathCheck = true,
+    TargetTeam = "All",
+    Theme = "Delta Blue",
+    UIScale = 1,
+    Minimized = false
+}
+
+local CurrentTarget = nil
+local Themes = {
+    ["Delta Blue"] = {Main = Color3.fromRGB(10, 10, 12), Accent = Color3.fromRGB(0, 120, 255), Text = Color3.new(1,1,1)},
+    ["KRNL Purple"] = {Main = Color3.fromRGB(15, 10, 20), Accent = Color3.fromRGB(150, 0, 255), Text = Color3.new(1,1,1)},
+    ["Solaris Red"] = {Main = Color3.fromRGB(15, 5, 5), Accent = Color3.fromRGB(255, 50, 50), Text = Color3.new(1,1,1)},
+    ["Emerald Forest"] = {Main = Color3.fromRGB(5, 15, 10), Accent = Color3.fromRGB(0, 255, 120), Text = Color3.new(1,1,1)}
+}
+
+-- // 1. UI ROOT //
+local ScreenGui = Instance.new("ScreenGui", player.PlayerGui)
+ScreenGui.Name = "AimbotV2_Final"
+ScreenGui.ResetOnSpawn = false
+
+local FOVFrame = Instance.new("Frame", ScreenGui)
+FOVFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+FOVFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+FOVFrame.BackgroundTransparency = 1
+local FOVStroke = Instance.new("UIStroke", FOVFrame)
+FOVStroke.Thickness = 1.5
+Instance.new("UICorner", FOVFrame).CornerRadius = UDim.new(1, 0)
+
+-- // 2. MAIN WINDOW //
+local Main = Instance.new("Frame", ScreenGui)
+Main.Size = UDim2.new(0, 220, 0, 300)
+Main.Position = UDim2.new(0.5, -110, 0.5, -150)
+Main.BackgroundColor3 = Themes[Settings.Theme].Main
+Main.Active = true
+Main.Draggable = true
+Main.ClipsDescendants = true
+local MainCorner = Instance.new("UICorner", Main)
+MainCorner.CornerRadius = UDim.new(0, 12)
+local MainStroke = Instance.new("UIStroke", Main)
+MainStroke.Thickness = 2
+MainStroke.Color = Themes[Settings.Theme].Accent
+
+local TopBar = Instance.new("Frame", Main)
+TopBar.Size = UDim2.new(1, 0, 0, 35)
+TopBar.BackgroundTransparency = 1
+
+local Title = Instance.new("TextLabel", TopBar)
+Title.Text = "Aimbot v2.0 by tiktok @khezn21"
+Title.Size = UDim2.new(1, -40, 1, 0)
+Title.Position = UDim2.new(0, 10, 0, 0)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 10
+Title.TextColor3 = Themes[Settings.Theme].Accent
+Title.BackgroundTransparency = 1
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+local MinBtn = Instance.new("TextButton", TopBar)
+MinBtn.Text = "-"
+MinBtn.Size = UDim2.new(0, 30, 1, 0)
+MinBtn.Position = UDim2.new(1, -30, 0, 0)
+MinBtn.BackgroundTransparency = 1
+MinBtn.Font = Enum.Font.GothamBold
+MinBtn.TextColor3 = Color3.new(1, 1, 1)
+MinBtn.TextSize = 18
+
+local Content = Instance.new("ScrollingFrame", Main)
+Content.Size = UDim2.new(1, -15, 1, -45)
+Content.Position = UDim2.new(0, 7, 0, 40)
+Content.BackgroundTransparency = 1
+Content.ScrollBarThickness = 0
+local Layout = Instance.new("UIListLayout", Content)
+Layout.Padding = UDim.new(0, 5)
+
+-- // 3. COMPONENT GENERATORS //
+local function AddToggle(text, key)
+    local f = Instance.new("Frame", Content)
+    f.Size = UDim2.new(1, 0, 0, 30)
+    f.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+    Instance.new("UICorner", f).CornerRadius = UDim.new(0, 6)
     
-    local _0xP = game:GetService(_0xG[3])
-    local _0xR = game:GetService(_0xG[4])
-    local _0xU = game:GetService(_0xG[5])
-    local _0xL = _0xP.LocalPlayer
-    local _0xC = workspace[_0xG[6]]
-    
-    local _0xS = {
-        _0x1 = false, _0x2 = "\72\101\97\100", _0x3 = false, _0x4 = 150, 
-        _0x5 = 0, _0x6 = true, _0x7 = true, _0x8 = {["\65\108\108"] = true},
-        _0x9 = "\68\101\108\116\97\32\66\108\117\101", _0x10 = 1, _0x11 = false, 
-        _0x12 = true, _0x13 = Vector2.new(_0xC.ViewportSize.X/2, _0xC.ViewportSize.Y/2)
-    }
+    local l = Instance.new("TextLabel", f)
+    l.Text = "  " .. text
+    l.Size = UDim2.new(1, -40, 1, 0)
+    l.Font = Enum.Font.Gotham
+    l.TextSize = 11
+    l.TextColor3 = Color3.new(0.9, 0.9, 0.9)
+    l.BackgroundTransparency = 1
+    l.TextXAlignment = Enum.TextXAlignment.Left
 
-    local _0xT = {
-        ["\68\101\108\116\97\32\66\108\117\101"] = {M = Color3.fromRGB(10, 10, 12), A = Color3.fromRGB(0, 120, 255)},
-        ["\75\82\78\76\32\80\117\114\112\108\101"] = {M = Color3.fromRGB(15, 10, 20), A = Color3.fromRGB(150, 0, 255)},
-        ["\83\111\108\97\114\105\115\32\82\101\100"] = {M = Color3.fromRGB(15, 5, 5), A = Color3.fromRGB(255, 50, 50)},
-        ["\69\109\101\114\97\108\100\32\70\111\114\101\115\116"] = {M = Color3.fromRGB(5, 15, 10), A = Color3.fromRGB(0, 255, 120)}
-    }
+    local b = Instance.new("TextButton", f)
+    b.Size = UDim2.new(0, 30, 0, 16)
+    b.Position = UDim2.new(1, -35, 0.5, -8)
+    b.BackgroundColor3 = Settings[key] and Themes[Settings.Theme].Accent or Color3.fromRGB(50, 50, 55)
+    b.Text = ""
+    Instance.new("UICorner", b).CornerRadius = UDim.new(1, 0)
 
-    -- [[ UI CONTEXT ]] --
-    local _0xSG = Instance.new("\83\99\114\101\101\110\71\117\105", _0xL.PlayerGui)
-    _0xSG.Name = "\65\105\109\98\111\116\86\50\95\83\117\112\114\101\109\101"
-    _0xSG.ResetOnSpawn = false
+    b.MouseButton1Click:Connect(function()
+        Settings[key] = not Settings[key]
+        b.BackgroundColor3 = Settings[key] and Themes[Settings.Theme].Accent or Color3.fromRGB(50, 50, 55)
+    end)
+end
 
-    local _0xM = Instance.new("\70\114\97\109\101", _0xSG)
-    _0xM.Size = UDim2.new(0, 220, 0, 320)
-    _0xM.Position = UDim2.new(0.5, -110, 0.5, -160)
-    _0xM.BackgroundColor3 = _0xT[_0xS._0x9].M
-    _0xM.Active = true
-    _0xM.Draggable = true
-    Instance.new("\85\73\67\111\114\110\101\114", _0xM).CornerRadius = UDim.new(0, 12)
-    
-    local _0xMS = Instance.new("\85\73\83\116\114\111\107\101", _0xM)
-    _0xMS.Thickness = 2
-    _0xMS.Color = _0xT[_0xS._0x9].A
+local function AddDropdown(text, key, options)
+    local f = Instance.new("Frame", Content)
+    f.Size = UDim2.new(1, 0, 0, 30)
+    f.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+    f.ClipsDescendants = true
+    Instance.new("UICorner", f).CornerRadius = UDim.new(0, 6)
 
-    local _0xTB = Instance.new("\70\114\97\109\101", _0xM)
-    _0xTB.Size = UDim2.new(1, 0, 0, 35)
-    _0xTB.BackgroundTransparency = 1
+    local b = Instance.new("TextButton", f)
+    b.Size = UDim2.new(1, 0, 0, 30)
+    b.Text = "  " .. text .. ": " .. tostring(Settings[key])
+    b.Font = Enum.Font.Gotham
+    b.TextSize = 11
+    b.TextColor3 = Color3.new(0.9, 0.9, 0.9)
+    b.BackgroundTransparency = 1
+    b.TextXAlignment = Enum.TextXAlignment.Left
 
-    local _0xTL = Instance.new("\84\101\120\116\76\97\98\101\108", _0xTB)
-    _0xTL.Text = "\65\105\109\98\111\116\32\118\50\46\48\32\98\121\32\116\105\107\116\111\107\32\64\107\104\101\122\110\50\49"
-    _0xTL.Size = UDim2.new(1, -40, 1, 0)
-    _0xTL.Position = UDim2.new(0, 10, 0, 0)
-    _0xTL.Font = Enum.Font.GothamBold
-    _0xTL.TextSize = 10
-    _0xTL.TextColor3 = _0xT[_0xS._0x9].A
-    _0xTL.BackgroundTransparency = 1
-    _0xTL.TextXAlignment = Enum.TextXAlignment.Left
+    local open = false
+    b.MouseButton1Click:Connect(function()
+        open = not open
+        f:TweenSize(open and UDim2.new(1, 0, 0, 30 + (#options * 25)) or UDim2.new(1, 0, 0, 30), "Out", "Quart", 0.3, true)
+    end)
 
-    -- [[ LOGIC ]] --
-    local function _0xIV(_0xPL)
-        if not _0xPL or not _0xPL.Character then return false end
-        if _0xS._0x7 and _0xPL.Character:FindFirstChildOfClass("\72\117\109\97\110\111\105\100") and _0xPL.Character.Humanoid.Health <= 0 then return false end
-        local _0xTC = false
-        if _0xS._0x8["\65\108\108"] then _0xTC = true else _0xTC = _0xS._0x8[tostring(_0xPL.Team)] end
-        if not _0xTC then return false end
-        if _0xS._0x6 then
-            local _0xRY = RaycastParams.new()
-            _0xRY.FilterDescendantsInstances = {_0xL.Character, _0xC}
-            local _0xH = workspace:Raycast(_0xC.CFrame.Position, _0xPL.Character[_0xS._0x2].Position - _0xC.CFrame.Position, _0xRY)
-            if _0xH and not _0xH.Instance:IsDescendantOf(_0xPL.Character) then return false end
-        end
-        return true
+    for i, opt in pairs(options) do
+        local o = Instance.new("TextButton", f)
+        o.Size = UDim2.new(1, 0, 0, 25)
+        o.Position = UDim2.new(0, 0, 0, 30 + (i-1)*25)
+        o.Text = "      " .. tostring(opt)
+        o.Font = Enum.Font.Gotham
+        o.TextSize = 10
+        o.TextColor3 = Color3.fromRGB(180, 180, 180)
+        o.BackgroundTransparency = 1
+        o.TextXAlignment = Enum.TextXAlignment.Left
+
+        o.MouseButton1Click:Connect(function()
+            Settings[key] = opt
+            b.Text = "  " .. text .. ": " .. tostring(opt)
+            open = false
+            f:TweenSize(UDim2.new(1, 0, 0, 30), "Out", "Quart", 0.3, true)
+            
+            if key == "Theme" then
+                Main.BackgroundColor3 = Themes[opt].Main
+                MainStroke.Color = Themes[opt].Accent
+                Title.TextColor3 = Themes[opt].Accent
+                FOVStroke.Color = Themes[opt].Accent
+            elseif key == "UIScale" then
+                local num = tonumber(opt:sub(1,1))
+                Main.Size = UDim2.new(0, 220 * num, 0, 300 * num)
+            end
+        end)
     end
+end
 
-    local function _0xGC()
-        local _0xTR, _0xDS = nil, _0xS._0x4
-        for _, _0xVK in pairs(_0xP:GetPlayers()) do
-            if _0xVK ~= _0xL and _0xIV(_0xVK) and _0xVK.Character:FindFirstChild(_0xS._0x2) then
-                local _0xPS, _0xVS = _0xC:WorldToViewportPoint(_0xVK.Character[_0xS._0x2].Position)
-                if _0xVS then
-                    local _0xMG = (Vector2.new(_0xPS.X, _0xPS.Y) - _0xS._0x13).Magnitude
-                    if _0xMG < _0xDS then _0xTR = _0xVK _0xDS = _0xMG end
+local function AddSlider(text, min, max, key)
+    local f = Instance.new("Frame", Content)
+    f.Size = UDim2.new(1, 0, 0, 40)
+    f.BackgroundTransparency = 1
+
+    local l = Instance.new("TextLabel", f)
+    l.Text = "  " .. text .. ": " .. Settings[key]
+    l.Size = UDim2.new(1, 0, 0, 15)
+    l.Font = Enum.Font.Gotham
+    l.TextSize = 10
+    l.TextColor3 = Color3.new(0.8, 0.8, 0.8)
+    l.BackgroundTransparency = 1
+    l.TextXAlignment = Enum.TextXAlignment.Left
+
+    local bar = Instance.new("Frame", f)
+    bar.Size = UDim2.new(1, -24, 0, 4)
+    bar.Position = UDim2.new(0, 12, 0, 25)
+    bar.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+    
+    local fill = Instance.new("Frame", bar)
+    fill.Size = UDim2.new((Settings[key]-min)/(max-min), 0, 1, 0)
+    fill.BackgroundColor3 = Themes[Settings.Theme].Accent
+    Instance.new("UICorner", fill)
+
+    local knob = Instance.new("Frame", fill)
+    knob.AnchorPoint = Vector2.new(0.5, 0.5)
+    knob.Position = UDim2.new(1, 0, 0.5, 0)
+    knob.Size = UDim2.new(0, 12, 0, 12)
+    knob.BackgroundColor3 = Color3.new(1, 1, 1)
+    Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
+
+    bar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            local con; con = RS.RenderStepped:Connect(function()
+                if not UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) and not UIS:IsMouseButtonPressed(Enum.UserInputType.Touch) then con:Disconnect() return end
+                local pos = math.clamp((UIS:GetMouseLocation().X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
+                fill.Size = UDim2.new(pos, 0, 1, 0)
+                Settings[key] = math.floor(min + (max-min) * pos)
+                l.Text = "  " .. text .. ": " .. Settings[key]
+            end)
+        end
+    end)
+end
+
+-- // 4. AIMBOT LOGIC //
+local function IsValid(plr)
+    if not plr or not plr.Character then return false end
+    if Settings.DeathCheck and plr.Character:FindFirstChildOfClass("Humanoid") and plr.Character.Humanoid.Health <= 0 then return false end
+    if Settings.TargetTeam ~= "All" and tostring(plr.Team) ~= Settings.TargetTeam then return false end
+    return true
+end
+
+local function GetClosest()
+    local target, dist = nil, Settings.FOVSize
+    local center = Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y/2)
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= player and IsValid(p) and p.Character:FindFirstChild(Settings.TargetPart) then
+            local pos, vis = camera:WorldToViewportPoint(p.Character[Settings.TargetPart].Position)
+            if vis then
+                local mag = (Vector2.new(pos.X, pos.Y) - center).Magnitude
+                if mag < dist then
+                    target = p dist = mag
                 end
             end
         end
-        return _0xTR
     end
-
-    -- [[ RUNTIME ]] --
-    _0xR.RenderStepped:Connect(function()
-        if _0xS._0x1 then
-            local _0xCT = _0xGC()
-            if _0xCT then
-                local _0xPT = _0xCT.Character[_0xS._0x2]
-                _0xC.CFrame = _0xC.CFrame:Lerp(CFrame.new(_0xC.CFrame.Position, _0xPT.Position), 1 - (_0xS._0x5/25))
-            end
-        end
-    end)
-
-    -- [[ INTERFACE LOADING ]] --
-    -- Full Scrolling Content and Sliders remain active in this encrypted block
-    -- Your original UI layout is preserved exactly.
-    print("\83\117\112\114\101\109\101\32\86\50\32\76\111\97\100\101\100")
+    return target
 end
 
-coroutine.wrap(_0xLUVM)()
+-- // 5. RUNTIME //
+MinBtn.MouseButton1Click:Connect(function()
+    Settings.Minimized = not Settings.Minimized
+    Main:TweenSize(Settings.Minimized and UDim2.new(0, Main.Size.X.Offset, 0, 35) or UDim2.new(0, Main.Size.X.Offset, 0, 300 * Settings.UIScale), "Out", "Sine", 0.3, true)
+    MinBtn.Text = Settings.Minimized and "+" or "-"
+    Content.Visible = not Settings.Minimized
+end)
+
+RS.RenderStepped:Connect(function()
+    FOVFrame.Visible = Settings.UseFOV
+    FOVFrame.Size = UDim2.new(0, Settings.FOVSize * 2, 0, Settings.FOVSize * 2)
+    
+    if Settings.Aimbot then
+        if CurrentTarget and IsValid(CurrentTarget) and CurrentTarget.Character:FindFirstChild(Settings.TargetPart) then
+            local part = CurrentTarget.Character[Settings.TargetPart]
+            local pos, vis = camera:WorldToViewportPoint(part.Position)
+            local mag = (Vector2.new(pos.X, pos.Y) - Vector2.new(camera.ViewportSize.X/2, camera.ViewportSize.Y/2)).Magnitude
+            
+            if not vis or mag > (Settings.FOVSize * 1.5) then
+                CurrentTarget = nil
+            else
+                camera.CFrame = camera.CFrame:Lerp(CFrame.new(camera.CFrame.Position, part.Position), 1 - (Settings.Smoothing/25))
+            end
+        else
+            CurrentTarget = GetClosest()
+        end
+    end
+end)
+
+-- // 6. INITIALIZE DROPDOWNS //
+local teamNames = {"All"}
+for _, t in pairs(Teams:GetTeams()) do table.insert(teamNames, t.Name) end
+
+AddToggle("Enable Aimbot", "Aimbot")
+AddToggle("Death Check", "DeathCheck")
+AddDropdown("Target Part", "TargetPart", {"Head", "Torso", "UpperTorso", "LowerTorso", "Right Arm", "Left Arm", "Right Leg", "Left Leg"})
+AddDropdown("Target Team", "TargetTeam", teamNames)
+AddDropdown("Theme", "Theme", {"Delta Blue", "KRNL Purple", "Solaris Red", "Emerald Forest"})
+AddDropdown("GUI Size", "UIScale", {"1x", "2x", "3x", "4x"})
+AddToggle("Show FOV", "UseFOV")
+AddSlider("FOV Size", 30, 800, "FOVSize")
+AddSlider("Smoothing", 0, 20, "Smoothing")
